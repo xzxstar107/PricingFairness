@@ -86,7 +86,7 @@ for (i2 in paramvec0) {
     # create coefficient vector
     obj_coef <- c(obj_coef, r[, j])
   }
-  # create coefficient vector for group 1
+ # create coefficient vector for group 1
   obj_coef1 <- c() #l*n1
   for (j in 1:l) {
     obj_coef1 <- c(obj_coef1, obj_coef[((j-1)*n+1):((j-1)*n+n1)])
@@ -96,9 +96,8 @@ for (i2 in paramvec0) {
   for (j in 1:l) {
     obj_coef2 <- c(obj_coef2, obj_coef[((j-1)*n+n1+1):((j-1)*n+n1+n2)])
   }
-  
   # create coeffecients for constrants
-  mat <- matrix(0, ncol = l*n + k*l+k*(k-1)*l/2, nrow = k*l+n+k*l+1+k+n*l+k*l+k*(k-1)*l/2)
+  mat <- matrix(0, ncol = l*n + k*l+k*(k-1)*l/2, nrow = k*l+n+k+n*l+k*l+k*(k-1)*l/2)
   for (j in 1:l) {
     mat[j, ((j-1)*n+1):((j-1)*n+n1)] <- rep(1, n1)
     mat[l+j, ((j-1)*n+n1+1):((j-1)*n+n1+n2)] <- rep(1, n2)
@@ -120,23 +119,15 @@ for (i2 in paramvec0) {
     }
   }
   
-  # introduce instrumental variables for Fairness constraint
-  st_ind <- k*l+n
-  for (j in 1:l) {
-    mat[st_ind+2*(j-1)+1, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(1, -1, -1)
-    mat[st_ind+2*(j-1)+2, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(-1, 1, -1)
-  }
-  # Fairness constraint
-  st_ind <- k*l+n+k*l
-  mat[st_ind+1, (l*n+k*l+1):(l*n+k*l+l)] <- rep(1, l)
+  # Remove Fairness constraint
   # 
-  st_ind <- k*l+n+k*l+1
+  st_ind <- k*l+n
   for (i in 1:k) {
     mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- rep(1, l)
   }
   
   # Variables nonnegative condition
-  st_ind <- k*l+n+k*l+1+k
+  st_ind <- k*l+n+k
   mat[(st_ind+1):(st_ind+l*n + k*l+k*(k-1)*l/2), ] <- diag(x=1, nrow = l*n + k*l + k*(k-1)*l/2, 
                                                            ncol = l*n + k*l + k*(k-1)*l/2)
   # head(mat)
@@ -203,5 +194,4 @@ for (i2 in paramvec0) {
     }
       
 
-
-
+  
