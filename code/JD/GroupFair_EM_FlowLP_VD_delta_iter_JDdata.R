@@ -1,7 +1,7 @@
 #!/usr/local/R/3.6.2/bin/Rscript
 ####Numerical experiment
 
-####TV constarned Max-flow  
+####EM constarned Max-flow  
 ####with JD data
 
 # Load linear programming library
