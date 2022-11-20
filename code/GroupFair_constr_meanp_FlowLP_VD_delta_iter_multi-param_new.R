@@ -3,7 +3,8 @@
 
 ####TV mean price constarned Max-flow baseline 
 ####with simulated data
-
+# E:\research\Prof.Chen\20221013\Multi-params_delta_iter
+setwd("E:/research/Prof.Chen/20221013/Multi-params_delta_iter/mean-p")
 # Load linear programming library
 # install.packages("lpSolve")
 library("lpSolve")
@@ -129,9 +130,18 @@ for (i2 in paramvec0) {
 #  mat[st_ind+1, (l*n+k*l+1):(l*n+k*l+l)] <- rep(1, l)
   # Fairness constraint
   st_ind <- k*l+n
-  for (i in 1:k) {
-    mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
-  }
+  i=1
+  mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
+  i=k
+  mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+  # for (i in 1:(k-1)) {
+  #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
+  #   j=i+1
+  #   while (j<=k) {
+  #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- -p/pmax
+  #     j <- j+1
+  #   }
+  # }
   st_ind <- k*l+n+1
   for (i in 1:k) {
     mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- rep(1, l)
@@ -146,12 +156,16 @@ for (i2 in paramvec0) {
   
   ## iteration for delta
   # initialize counter for delta
+  opt_res <- matrix(nrow = length(drange), ncol = 6+10+k*l)
+  alp_name <- c()
+  for (i in 1:k) {
+    alp_name <- c(alp_name, paste0("alp",i,"_",1:l))
+  }
+  colnames(opt_res) <- c("a1","a2","a3","c1","c2","c3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2", alp_name)
   m <- 0
-  opt_res <- matrix(nrow = length(drange), ncol = 6+10)
-  colnames(opt_res) <- c("c1","c2","c3","a1","a2","a3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2")
   for (delta in drange) {
     m <- m+1
-    f.obj <- c(obj_coef, rep(0,k*l+k*(k-1)*l/2))
+    f.obj <- c(obj_coef, rep(0,k*l))
     f.con <- mat
 #    f.dir <- c(rep("<=",k*l), rep("<=", n), rep("<=", k*l), "<=", rep("=",k), rep(">=", l*n + k*l+k*(k-1)*l/2))
 #    f.rhs <- c(rep(0,k*l), rep(1, n), rep(0, k*l), delta, rep(1,k), rep(0, l*n + k*l+k*(k-1)*l/2))
@@ -194,17 +208,17 @@ for (i2 in paramvec0) {
     opt_welfare1 <- opt_surplus1 + opt_obj1
     opt_welfare2 <- opt_surplus2 + opt_obj2
     # Save results
-      opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2)
+    #  opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2)
+    # Save results
+    opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2, tail(opt_sol, k*l))
+    print(opt_res[m,])
     }
-
-      write.csv(opt_res, file = paste0("res_TVconst_meanp_VD_multi-delta_params_",i1,i2,i3,j1,j2,j3,"_new.csv"))
+    # output results
+    write.csv(opt_res, file = paste0("res_const_meanp_VD_multi-delta_params_",i1,i2,i3,j1,j2,j3,"_new.csv"))
+      }       
     }
-      
-          }
-          
+       } 
         }
-        
-    }
       
 
 
