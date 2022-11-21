@@ -4,6 +4,7 @@
 ####TV mean price constarned Max-flow baseline 
 ####with simulated data
 # E:\research\Prof.Chen\20221013\Multi-params_delta_iter
+# setwd("D:/USC Learning/star_project/2022.11.19/PricingFairness-main/code/mean")
 setwd("E:/research/Prof.Chen/20221013/Multi-params_delta_iter/mean-p")
 # Load linear programming library
 # install.packages("lpSolve")
@@ -50,158 +51,163 @@ paramvec <- seq(length.out =n_param,from = 1, to = 2)
 # length(drange) # 20
 drange <- seq(from = 0.05, to = 1, by = 0.05)
 
-paramind <- 0
+# paramind <- 0
 # Fix constant
 i1 <- 1
 j1 <- 1
 ## Iteration over multi-parameters
 for (i2 in paramvec0) {
   for (i3 in paramvec0) {
-      for (j2 in paramvec) {
-        for (j3 in paramvec) {
-            # sample parameters
-            # paramind <- paramind + 1
-            c <- c(i1, i2, i3)
-            a <- c(j1, j2, j3)
-            # Simulate V and compute Surplus
-            ax <- matrix(a, nrow = 1) %*% matrix(rbind(rep(1,n),x,s), nrow = 3)
-            cx <- matrix(c, nrow = 1) %*% matrix(rbind(rep(1,n),x,s), nrow = 3)
-            # summary(t(cx)) # 2.002238 6.997109
-            # summary(t(ax)) # 3.004476 8.994217
-            # Customer Valuation
-            V <- c()
-            for (i in 1:n) {
-              # keep track of random seed
-              set.seed(i)
-              # Linear demand - Uniform distribution
-              V[i] <- runif(1,0,cx[i]) 
-            }
-            # summary(V)
-            # Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-            # 0.000236 0.950737 1.918675 2.203933 3.148514 6.826074
-            #Emperical Revenue 
-  r <- matrix(ncol = l, nrow = n)
-  obj_coef <- c()
-  for(j in 1:l){
-    r[, j] <- ax * (1-p[j]/cx) * p[j]
-    # create coefficient vector
-    obj_coef <- c(obj_coef, r[, j])
-  }
-  # create coefficient vector for group 1
-  obj_coef1 <- c() #l*n1
-  for (j in 1:l) {
-    obj_coef1 <- c(obj_coef1, obj_coef[((j-1)*n+1):((j-1)*n+n1)])
-  }
-  # create coefficient vector for group 2
-  obj_coef2 <- c() #l*n2
-  for (j in 1:l) {
-    obj_coef2 <- c(obj_coef2, obj_coef[((j-1)*n+n1+1):((j-1)*n+n1+n2)])
-  }
-  
-  # create coeffecients for constrants
-  mat <- matrix(0, ncol = l*n + k*l, nrow = k*l+n+k*l+1+k+n*l+k*l)
-  for (j in 1:l) {
-    mat[j, ((j-1)*n+1):((j-1)*n+n1)] <- rep(1, n1)
-    mat[l+j, ((j-1)*n+n1+1):((j-1)*n+n1+n2)] <- rep(1, n2)
-    mat[j, l*n+j] <- -n1
-    mat[l+j, l*n+l+j] <- -n2
-  }
-  
-  st_ind <- k*l
-  for (i in 1:n1) {
-    for (j in 1:l) {
-      mat[st_ind+i,(j-1)*n+i] <- 1
-    }
-  }
-  
-  st_ind <- k*l+n1
-  for (i in 1:n2) {
-    for (j in 1:l) {
-      mat[st_ind+i,(j-1)*n+n1+i] <- 1
-    }
-  }
-  
-#  # introduce instrumental variables for Fairness constraint
-#  st_ind <- k*l+n
-#  for (j in 1:l) {
-#    mat[st_ind+2*(j-1)+1, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(1, -1, -1)
-#    mat[st_ind+2*(j-1)+2, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(-1, 1, -1)
-#  }
-#  mat[st_ind+1, (l*n+k*l+1):(l*n+k*l+l)] <- rep(1, l)
-  # Fairness constraint
-  st_ind <- k*l+n
-  i=1
-  mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
-  i=k
-  mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
-  i=1
-  mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
-  i=k
-  mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
-  # for (i in 1:(k-1)) {
-  #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
-  #   j=i+1
-  #   while (j<=k) {
-  #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- -p/pmax
-  #     j <- j+1
-  #   }
-  # }
-  # for (i in 1:(k-1)) {
-  #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
-  #   j=i+1
-  #   while (j<=k) {
-  #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- p/pmax
-  #     j <- j+1
-  #   }
-  # }
-  st_ind <- k*l+n+k*(k-1)
-  for (i in 1:k) {
-    mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- rep(1, l)
-  }
-  
-  # Variables nonnegative condition
-  st_ind <- k*l+n+k*(k-1)+k
-  mat[(st_ind+1):(st_ind+l*n + k*l), ] <- diag(x=1, nrow = l*n + k*l, 
-                                                           ncol = l*n + k*l)
-  # head(mat)
-  # dim(mat) 
-  
-  ## iteration for delta
-  # initialize counter for delta
-  opt_res <- matrix(nrow = length(drange), ncol = 6+10+k*l)
-  alp_name <- c()
-  for (i in 1:k) {
-    alp_name <- c(alp_name, paste0("alp",i,"_",1:l))
-  }
-  colnames(opt_res) <- c("a1","a2","a3","c1","c2","c3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2", alp_name)
-  m <- 0
-  for (delta in drange) {
-    m <- m+1
-    f.obj <- c(obj_coef, rep(0,k*l))
-    f.con <- mat
-    f.dir <- c(rep("<=",k*l), rep("<=", n), rep("<=",k*(k-1)), rep("=",k), rep(">=", l*n + k*l))
-    f.rhs <- c(rep(0,k*l), rep(1, n), rep(delta,k*(k-1)), rep(1,k), rep(0, l*n + k*l))
-    
-    # Results
-    opt_obj <- lp ("max", f.obj, f.con, f.dir, f.rhs)$objval
-    opt_sol <- lp ("max", f.obj, f.con, f.dir, f.rhs)$solution
-    
-    # Extract optimal solution for group1
-    opt_sol1 <- c() #l*n1
-    for (j in 1:l) {
-      opt_sol1 <- c(opt_sol1, opt_sol[((j-1)*n+1):((j-1)*n+n1)])
-    }
-    # Extract optimal solution for group2
-    opt_sol2 <- c() #l*n2
-    for (j in 1:l) {
-      opt_sol2 <- c(opt_sol2, opt_sol[((j-1)*n+n1+1):((j-1)*n+n1+n2)])
-    }
-    # Compute optimal revenue for group1 & 2
-    opt_obj1 <- sum(opt_sol1 * obj_coef1)
-    opt_obj2 <- sum(opt_sol2 * obj_coef2)
+    for (j2 in paramvec) {
+      for (j3 in paramvec) {
+        # sample parameters
+        # paramind <- paramind + 1
+        c <- c(i1, i2, i3)
+        a <- c(j1, j2, j3)
+        # Simulate V and compute Surplus
+        ax <- matrix(a, nrow = 1) %*% matrix(rbind(rep(1,n),x,s), nrow = 3)
+        cx <- matrix(c, nrow = 1) %*% matrix(rbind(rep(1,n),x,s), nrow = 3)
+        # summary(t(cx)) # 2.002238 6.997109
+        # summary(t(ax)) # 3.004476 8.994217
+        # Customer Valuation
+        V <- c()
+        for (i in 1:n) {
+          # keep track of random seed
+          set.seed(i)
+          # Linear demand - Uniform distribution
+          V[i] <- runif(1,0,cx[i]) 
+        }
+        # summary(V)
+        # Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+        # 0.000236 0.950737 1.918675 2.203933 3.148514 6.826074
+        #Emperical Revenue 
+        r <- matrix(ncol = l, nrow = n)
+        obj_coef <- c()
+        for(j in 1:l){
+          r[, j] <- ax * (1-p[j]/cx) * p[j]
+          # create coefficient vector
+          obj_coef <- c(obj_coef, r[, j])
+        }
+        # create coefficient vector for group 1
+        obj_coef1 <- c() #l*n1
+        for (j in 1:l) {
+          obj_coef1 <- c(obj_coef1, obj_coef[((j-1)*n+1):((j-1)*n+n1)])
+        }
+        # create coefficient vector for group 2
+        obj_coef2 <- c() #l*n2
+        for (j in 1:l) {
+          obj_coef2 <- c(obj_coef2, obj_coef[((j-1)*n+n1+1):((j-1)*n+n1+n2)])
+        }
+        
+        # create coeffecients for constrants
+        mat <- matrix(0, ncol = l*n + k*l, nrow = k*l+n+k*l+1+k+n*l+k*l)
+        for (j in 1:l) {
+          mat[j, ((j-1)*n+1):((j-1)*n+n1)] <- rep(1, n1)
+          mat[l+j, ((j-1)*n+n1+1):((j-1)*n+n1+n2)] <- rep(1, n2)
+          mat[j, l*n+j] <- -n1
+          mat[l+j, l*n+l+j] <- -n2
+        }
+        
+        st_ind <- k*l
+        for (i in 1:n1) {
+          for (j in 1:l) {
+            mat[st_ind+i,(j-1)*n+i] <- 1
+          }
+        }
+        
+        st_ind <- k*l+n1
+        for (i in 1:n2) {
+          for (j in 1:l) {
+            mat[st_ind+i,(j-1)*n+n1+i] <- 1
+          }
+        }
+        
+        #  # introduce instrumental variables for Fairness constraint
+        #  st_ind <- k*l+n
+        #  for (j in 1:l) {
+        #    mat[st_ind+2*(j-1)+1, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(1, -1, -1)
+        #    mat[st_ind+2*(j-1)+2, c(n*l+j, n*l+(k-1)*l+j, n*l+k*l+j)] <- c(-1, 1, -1)
+        #  }
+        #  mat[st_ind+1, (l*n+k*l+1):(l*n+k*l+l)] <- rep(1, l)
+        # Fairness constraint
+        st_ind <- k*l+n
+        i=1
+        mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
+        i=k
+        mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+        i=1
+        mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+        i=k
+        mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
+        # for (i in 1:(k-1)) {
+        #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
+        #   j=i+1
+        #   while (j<=k) {
+        #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- -p/pmax
+        #     j <- j+1
+        #   }
+        # }
+        # for (i in 1:(k-1)) {
+        #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+        #   j=i+1
+        #   while (j<=k) {
+        #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- p/pmax
+        #     j <- j+1
+        #   }
+        # }
+        st_ind <- k*l+n+k*(k-1)
+        for (i in 1:k) {
+          mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- rep(1, l)
+        }
+        
+        # Variables nonnegative condition
+        st_ind <- k*l+n+k*(k-1)+k
+        mat[(st_ind+1):(st_ind+l*n + k*l), ] <- diag(x=1, nrow = l*n + k*l, 
+                                                     ncol = l*n + k*l)
+        # head(mat)
+        # dim(mat) 
+        
+        ## iteration for delta
+        opt_res <- matrix(nrow = length(drange), ncol = 6+10+k*l)
+        alp_name <- c()
+        for (i in 1:k) {
+          alp_name <- c(alp_name, paste0("alp",i,"_",1:l))
+        }
+        colnames(opt_res) <- c("a1","a2","a3","c1","c2","c3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2", alp_name)
+        # initialize counter for delta
+        m <- 0
+        for (delta in drange) {
+          m <- m+1
+          f.obj <- c(obj_coef, rep(0,k*l))
+          f.con <- mat
+          f.dir <- c(rep("<=",k*l), rep("<=", n), rep("<=",k*(k-1)), rep("=",k), rep(">=", l*n + k*l))
+          f.rhs <- c(rep(0,k*l), rep(1, n), rep(delta,k*(k-1)), rep(1,k), rep(0, l*n + k*l))
+          
+          # Results
+          opt_obj <- lp ("max", f.obj, f.con, f.dir, f.rhs)$objval
+          opt_sol <- lp ("max", f.obj, f.con, f.dir, f.rhs)$solution
+          
+          # Extract optimal solution for group1
+          opt_sol1 <- c() #l*n1
+          for (j in 1:l) {
+            opt_sol1 <- c(opt_sol1, opt_sol[((j-1)*n+1):((j-1)*n+n1)])
+          }
+          # Extract optimal solution for group2
+          opt_sol2 <- c() #l*n2
+          for (j in 1:l) {
+            opt_sol2 <- c(opt_sol2, opt_sol[((j-1)*n+n1+1):((j-1)*n+n1+n2)])
+          }
+          # Compute optimal revenue for group1 & 2
+          opt_obj1 <- sum(opt_sol1 * obj_coef1)
+          opt_obj2 <- sum(opt_sol2 * obj_coef2)
     
     # Compute surplus 
-    opt_surplus <- opt_sol[1:(l*n)] * max(V - rep(p, each = n),0)
+    # opt_surplus <- opt_sol[1:(l*n)] * max(V - rep(p, each = n),0)
+    pvec <- c()
+    for (j in 1:l){
+      pvec <- c(pvec, rep(p[j],n))
+    }
+    opt_surplus <- opt_sol[1:(l*n)] * rep(ax,l)/(2*rep(cx,l)) * (rep(cx,l) - pvec)^2
     opt_surplus1 <-c()
     for (j in 1:l) {
       opt_surplus1 <- c(opt_surplus1, opt_surplus[((j-1)*n+1):((j-1)*n+n1)])
@@ -229,8 +235,6 @@ for (i2 in paramvec0) {
     }
        } 
         }
-      
-
       
 
 

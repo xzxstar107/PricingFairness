@@ -180,10 +180,14 @@ for (i2 in paramvec0) {
   
   
   ## iteration for delta
-  # initialize counter for delta
-  m <- 0
-  opt_res <- matrix(nrow = length(drange), ncol = 6+10+k*l+l+1+l+1)
-  colnames(opt_res) <- c("c1","c2","c3","a1","a2","a3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2",paste0('alp1_',seq(1,l,1)),paste0('alp2_',seq(1,l,1)),paste0('alp12_diff_',seq(1,l,1)),'alp_diff',paste0('gini_coef',seq(1,l,1)),'gini')
+        opt_res <- matrix(nrow = length(drange), ncol = 6+10+k*l)
+        alp_name <- c()
+        for (i in 1:k) {
+          alp_name <- c(alp_name, paste0("alp",i,"_",1:l))
+        }
+        colnames(opt_res) <- c("a1","a2","a3","c1","c2","c3","delta", "opt_obj", "opt_obj1","opt_obj2","opt_surplus", "opt_surplus1","opt_surplus2","opt_welfare","opt_welfare1","opt_welfare2", alp_name)
+        # initialize counter for delta
+        m <- 0  
   for (delta in drange) {
     m <- m+1
     f.obj <- c(obj_coef, rep(0, k*l+l^2))
@@ -218,7 +222,12 @@ for (i2 in paramvec0) {
     opt_obj2 <- sum(opt_sol2 * obj_coef2)
     
     # Compute surplus 
-    opt_surplus <- opt_sol[1:(l*n)] * d_vec * pmax(V - rep(p, each = n),0)
+    # opt_surplus <- opt_sol[1:(l*n)] * d_vec * pmax(V - rep(p, each = n),0)
+    pvec <- c()
+    for (j in 1:l){
+      pvec <- c(pvec, rep(p[j],n))
+    }
+    opt_surplus <- opt_sol[1:(l*n)] * rep(ax,l)/(2*rep(cx,l)) * (rep(cx,l) - pvec)^2
     opt_surplus1 <-c()
     for (j in 1:l) {
       opt_surplus1 <- c(opt_surplus1, opt_surplus[((j-1)*n+1):((j-1)*n+n1)])
@@ -234,12 +243,12 @@ for (i2 in paramvec0) {
     opt_welfare <- opt_surplus + opt_obj
     opt_welfare1 <- opt_surplus1 + opt_obj1
     opt_welfare2 <- opt_surplus2 + opt_obj2
-    # Save results
-      opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2,opt_sol[(l*n+1):(l*n+k*l)],opt_sol_alp_diff,opt_alp_diff,gini_coef,gini)
+# Save results
+    opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2, tail(opt_sol, k*l))
     }
-
-      write.csv(opt_res, file = paste0("res_EMconst_VD_multi-delta_params_",i1, i2, i3, j1, j2, j3,"_new.csv"))
-    }
+    # output results
+    write.csv(opt_res, file = paste0("res_EMconstr_VD_multi-delta_params_",i1,i2,i3,j1,j2,j3,"_new.csv"))
+      } 
       
           }
           
