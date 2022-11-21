@@ -199,7 +199,7 @@ for (i2 in paramvec0) {
     opt_welfare1 <- opt_surplus1 + opt_obj1
     opt_welfare2 <- opt_surplus2 + opt_obj2
 # Save results
-    opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2, tail(opt_sol, k*l))
+    opt_res[m,] <- c(i1, i2, i3, j1, j2, j3, delta, opt_obj,opt_obj1,opt_obj2, opt_surplus,opt_surplus1,opt_surplus2, opt_welfare,opt_welfare1,opt_welfare2, opt_sol[(n*l+1):(n*l+k*l))
     }
     # output results
     write.csv(opt_res, file = paste0("res_TVconstr_VD_multi-delta_params_",i1,i2,i3,j1,j2,j3,"_new.csv"))
