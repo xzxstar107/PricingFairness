@@ -60,7 +60,7 @@ for (i2 in paramvec0) {
       for (j2 in paramvec) {
         for (j3 in paramvec) {
             # sample parameters
-            paramind <- paramind + 1
+            # paramind <- paramind + 1
             c <- c(i1, i2, i3)
             a <- c(j1, j2, j3)
             # Simulate V and compute Surplus
@@ -134,6 +134,10 @@ for (i2 in paramvec0) {
   mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
   i=k
   mat[st_ind+1, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+  i=1
+  mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+  i=k
+  mat[st_ind+k, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
   # for (i in 1:(k-1)) {
   #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- p/pmax
   #   j=i+1
@@ -142,13 +146,21 @@ for (i2 in paramvec0) {
   #     j <- j+1
   #   }
   # }
-  st_ind <- k*l+n+1
+  # for (i in 1:(k-1)) {
+  #   mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- -p/pmax
+  #   j=i+1
+  #   while (j<=k) {
+  #     mat[st_ind+i, (l*n+(j-1)*l+1):(l*n+(j-1)*l+l)] <- p/pmax
+  #     j <- j+1
+  #   }
+  # }
+  st_ind <- k*l+n+k*(k-1)
   for (i in 1:k) {
     mat[st_ind+i, (l*n+(i-1)*l+1):(l*n+(i-1)*l+l)] <- rep(1, l)
   }
   
   # Variables nonnegative condition
-  st_ind <- k*l+n+1+k
+  st_ind <- k*l+n+k*(k-1)+k
   mat[(st_ind+1):(st_ind+l*n + k*l), ] <- diag(x=1, nrow = l*n + k*l, 
                                                            ncol = l*n + k*l)
   # head(mat)
@@ -167,10 +179,8 @@ for (i2 in paramvec0) {
     m <- m+1
     f.obj <- c(obj_coef, rep(0,k*l))
     f.con <- mat
-#    f.dir <- c(rep("<=",k*l), rep("<=", n), rep("<=", k*l), "<=", rep("=",k), rep(">=", l*n + k*l+k*(k-1)*l/2))
-#    f.rhs <- c(rep(0,k*l), rep(1, n), rep(0, k*l), delta, rep(1,k), rep(0, l*n + k*l+k*(k-1)*l/2))
-    f.dir <- c(rep("<=",k*l), rep("<=", n), "<=", rep("=",k), rep(">=", l*n + k*l))
-    f.rhs <- c(rep(0,k*l), rep(1, n), delta, rep(1,k), rep(0, l*n + k*l))
+    f.dir <- c(rep("<=",k*l), rep("<=", n), rep("<=",k*(k-1)), rep("=",k), rep(">=", l*n + k*l))
+    f.rhs <- c(rep(0,k*l), rep(1, n), rep(delta,k*(k-1)), rep(1,k), rep(0, l*n + k*l))
     
     # Results
     opt_obj <- lp ("max", f.obj, f.con, f.dir, f.rhs)$objval
@@ -219,6 +229,8 @@ for (i2 in paramvec0) {
     }
        } 
         }
+      
+
       
 
 
