@@ -4,7 +4,7 @@
 This repository explores a personalized pricing strategy under fairness constraints, using total variation distance (TVD) and earth mover's distance (EMD) as fairness measures. We introduce a linear programming approach in discrete price settings and provide theoretical bounds for the revenue gap between discrete and continuous price settings. Our model demonstrates enhanced fairness in terms of customer surplus, social welfare, and Gini index while maintaining competitive pricing policies.
 
 ## Repository Structure
-- `code/`: Contains all the R scripts implementing the proposed models.
+- `code/`: Contains all the R scripts implementing analyzing the proposed and baseline models.
 - `result/`: Includes results such as optimal objective, solution, and evaluation metrics for linear demand models.
 - `results/`: Houses results for other demand models including optimal objectives, solutions, and evaluation metrics.
 
