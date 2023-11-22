@@ -47,13 +47,6 @@ n_param <- 2
 paramvec <- seq(length.out =n_param,from = 1, to = 2)
 
 #### for delta in drange
-# drange <- c()
-# for (k in 1:4) {
-#   i <- 5-k
-#   drange[i] <- 10^(-k-1)
-# }
-# drange <- c(c(10^(-6), 10^(-3)), seq(from = 0.01, to = 0.1, length.out = 7), seq(from = 0.15, to = 1, length.out = 11))
-# length(drange) # 20
 drange <- seq(from = 0.05, to = 1, by = 0.05)
 
 # paramind <- 0
