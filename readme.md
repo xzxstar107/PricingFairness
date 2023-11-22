@@ -25,7 +25,7 @@ Please refer to the LICENSE file for details on the use and distribution of this
 
 ## Citation
 If you use the code or data from this repository in your research, please cite our paper as follows:
-''bibtex
+```bibtex
 @inproceedings{10.1145/3593013.3594097,
 author = {Chen, Xin and Xu, Zexing and Zhao, Zishuo and Zhou, Yuan},
 title = {Personalized Pricing with Group Fairness Constraint},
@@ -42,7 +42,7 @@ keywords = {personalized pricing, social welfare, group fairness, statistical pa
 location = {Chicago, IL, USA},
 series = {FAccT '23}
 }
-
+```
 ## Contact
 For any questions or further discussion regarding the research, please open an issue on this repository.
 
