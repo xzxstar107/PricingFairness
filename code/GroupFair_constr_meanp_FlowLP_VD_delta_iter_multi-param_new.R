@@ -4,7 +4,6 @@
 ####TV mean price constarned Max-flow baseline 
 ####with simulated data
 # E:\research\Prof.Chen\20221013\Multi-params_delta_iter
-# setwd("D:/USC Learning/star_project/2022.11.19/PricingFairness-main/code/mean")
 setwd("E:/research/Prof.Chen/20221013/Multi-params_delta_iter/mean-p")
 # Load linear programming library
 # install.packages("lpSolve")
